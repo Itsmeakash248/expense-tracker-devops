@@ -1,5 +1,5 @@
 
-# expense_tracker.py (Initial Version)
+# expense_tracker.py
 
 
 def add_expense(expenses, category, amount):
@@ -7,6 +7,7 @@ def add_expense(expenses, category, amount):
         raise ValueError("Expense amount must be greater than zero.")
 
     clean_category = category.strip().title() or "General"
+
     expenses.append({
         "category": clean_category,
         "amount": float(amount)
@@ -37,6 +38,29 @@ def budget_status(budget, expenses):
     return "Under Budget"
 
 
+def category_breakdown(expenses):
+    summary = {}
+
+    for item in expenses:
+        cat = item["category"]
+        summary[cat] = round(
+            summary.get(cat, 0.0) + item["amount"], 2
+        )
+
+    return summary
+
+
+def top_spending_category(expenses):
+    summary = category_breakdown(expenses)
+
+    if not summary:
+        return None
+
+    top_cat = max(summary, key=summary.get)
+
+    return (top_cat, summary[top_cat])
+
+
 def main():
     print("=" * 54)
     print(" PERSONAL EXPENSE & BUDGET TRACKER")
@@ -51,14 +75,48 @@ def main():
         print(f"\n--- Expense {i} ---")
 
         cat = input("Category (Food/Travel/Study): ")
-        amt = float(input("Amount (INR) : "))
 
-        add_expense(expenses, cat, amt)
+        while True:
+            try:
+                amt = float(input("Amount (INR) : "))
+
+                if amt <= 0:
+                    print(
+                        "Invalid amount! Please enter an amount "
+                        "greater than zero."
+                    )
+                    continue
+
+                add_expense(expenses, cat, amt)
+                break
+
+            except ValueError:
+                print("Invalid input! Please enter a valid numeric amount.")
 
     print("\n" + "=" * 54)
+    print(" EXPENSE SUMMARY")
+    print("=" * 54)
+
     print(f"Total Spent : INR {total_expenses(expenses):.2f}")
-    print(f"Remaining Balance : INR {remaining_budget(budget, expenses):.2f}")
+    print(
+        f"Remaining Balance : INR "
+        f"{remaining_budget(budget, expenses):.2f}"
+    )
     print(f"Budget Status : {budget_status(budget, expenses)}")
+
+    print("\nCategory Breakdown:")
+
+    for cat, amt in category_breakdown(expenses).items():
+        print(f" - {cat:<16}: INR {amt:.2f}")
+
+    top_cat = top_spending_category(expenses)
+
+    if top_cat:
+        print(
+            f"\nTop Category : {top_cat[0]} "
+            f"(INR {top_cat[1]:.2f})"
+        )
+
     print("=" * 54)
 
 
